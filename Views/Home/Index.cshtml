@@ -1,0 +1,101 @@
+﻿@using Pre_Finals_Quiz.Data
+@{
+    ViewData["Title"] = "Home";
+    var projects = ViewData["Projects"] as List<Pre_Finals_Quiz.Models.Project> ?? PortfolioStore.Projects;
+}
+
+<section class="hero">
+    <div class="container hero-grid">
+        <div>
+            <span class="eyebrow">ASP.NET Core MVC · Portfolio</span>
+            <h1>Hi, I'm <span class="accent">Kylie Ocampo</span>.<br />I build clean web apps.</h1>
+            <p class="lead">BSIT 31E1 student developer focused on C#, ASP.NET Core MVC and modern front-ends. Browse my projects, open any detail page, and leave a comment (login required).</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-accent" asp-controller="Portfolio" asp-action="Index">View Projects</a>
+                <a class="btn btn-ghost" href="https://github.com/kykie-hub" target="_blank" rel="noopener">GitHub Profile</a>
+            </div>
+            <div class="hero-stats">
+                <div><strong>@projects.Count</strong><span>Projects</span></div>
+                <div><strong>@projects.SelectMany(p => p.Technologies).Distinct().Count()</strong><span>Technologies</span></div>
+                <div><strong>@projects.Sum(p => PortfolioStore.CommentCount(p.Id))</strong><span>Comments</span></div>
+            </div>
+        </div>
+        <div class="hero-card">
+            <div class="hero-card-header"><span></span><span></span><span></span></div>
+            <pre><code>$ dotnet run
+✓ Portfolio running on https://localhost:5001
+✓ @projects.Count projects loaded
+✓ Session auth enabled
+✓ Comments ready</code></pre>
+            <div class="hero-tags">
+                @foreach (var t in projects.SelectMany(p => p.Technologies).Distinct().Take(8))
+                {
+                    <span class="tag">@t</span>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container section" id="toc-anchor">
+    <div class="section-head">
+        <h2>Table of Contents</h2>
+        <p>Organised index of every project — click to jump to its detail page.</p>
+    </div>
+    <ol class="toc-list">
+        @for (int i = 0; i < projects.Count; i++)
+        {
+            var p = projects[i];
+            <li>
+                <a asp-controller="Portfolio" asp-action="Details" asp-route-id="@p.Id">
+                    <span class="toc-num">@((i + 1).ToString("00"))</span>
+                    <span class="toc-title">@p.Title</span>
+                    <span class="toc-cat">@p.Category</span>
+                </a>
+            </li>
+        }
+    </ol>
+</section>
+
+<section class="container section">
+    <div class="section-head d-flex justify-content-between align-items-end flex-wrap gap-2">
+        <div>
+            <h2>Featured Projects</h2>
+            <p>Thumbnails, short descriptions and GitHub links.</p>
+        </div>
+        <a asp-controller="Portfolio" asp-action="Index" class="btn btn-ghost btn-sm">All projects →</a>
+    </div>
+    <div class="project-grid">
+        @foreach (var p in projects)
+        {
+            <article class="card project-card">
+                <a asp-controller="Portfolio" asp-action="Details" asp-route-id="@p.Id" class="thumb-link">
+                    <img src="@p.ThumbnailUrl" alt="@p.Title thumbnail" loading="lazy" />
+                </a>
+                <div class="card-body">
+                    <span class="cat">@p.Category</span>
+                    <h3><a asp-controller="Portfolio" asp-action="Details" asp-route-id="@p.Id">@p.Title</a></h3>
+                    <p>@p.ShortDescription</p>
+                    <div class="card-actions">
+                        <a class="btn btn-accent btn-sm" asp-controller="Portfolio" asp-action="Details" asp-route-id="@p.Id">Details</a>
+                        <a class="btn btn-ghost btn-sm" href="@p.GitHubUrl" target="_blank" rel="noopener">GitHub ↗</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+</section>
+
+<section class="about-strip">
+    <div class="container about-grid">
+        <div>
+            <h2>About this portfolio</h2>
+            <p>MVC application with <strong>Home</strong>, <strong>Projects (TOC + cards)</strong>, <strong>per-project detail pages</strong>, <strong>per-project comments</strong> and a <strong>hardcoded session login</strong>. Login details are documented in <code>README.md</code>.</p>
+        </div>
+        <div class="about-box">
+            <h4>Login</h4>
+            <p><code>admin</code> / <code>Portfolio123!</code></p>
+            <a class="btn btn-accent btn-sm" asp-controller="Account" asp-action="Login">Go to login</a>
+        </div>
+    </div>
+</section>

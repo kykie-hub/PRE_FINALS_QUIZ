@@ -1,0 +1,68 @@
+@model List<Pre_Finals_Quiz.Models.Project>
+@using Pre_Finals_Quiz.Data
+@{
+    ViewData["Title"] = "Projects";
+    var categories = ViewData["Categories"] as List<string> ?? new List<string>();
+    var active = ViewData["ActiveCategory"] as string;
+}
+
+<section class="container section" id="toc">
+    <span class="eyebrow">Portfolio</span>
+    <h1 class="page-title">Projects</h1>
+    <p class="lead">Table of contents + gallery. Every project has its own detail page with a comment section.</p>
+
+    <div class="filter-row">
+        <a asp-action="Index" class="btn @(string.IsNullOrEmpty(active) ? "btn-accent" : "btn-ghost") btn-sm">All (@Model.Count)</a>
+        @foreach (var c in categories)
+        {
+            <a asp-action="Index" asp-route-category="@c" class="btn @(active == c ? "btn-accent" : "btn-ghost") btn-sm">@c</a>
+        }
+    </div>
+
+    <div class="toc-wrapper">
+        <h2>📑 Table of Contents</h2>
+        <ol class="toc-list">
+            @for (int i = 0; i < PortfolioStore.Projects.Count; i++)
+            {
+                var p = PortfolioStore.Projects[i];
+                <li>
+                    <a asp-action="Details" asp-route-id="@p.Id">
+                        <span class="toc-num">@((i + 1).ToString("00"))</span>
+                        <span class="toc-title">@p.Title</span>
+                        <span class="toc-cat">@p.Category · @PortfolioStore.CommentCount(p.Id) comments</span>
+                    </a>
+                </li>
+            }
+        </ol>
+    </div>
+
+    <div class="project-grid mt-4">
+        @foreach (var p in Model)
+        {
+            <article class="card project-card">
+                <a asp-action="Details" asp-route-id="@p.Id" class="thumb-link">
+                    <img src="@p.ThumbnailUrl" alt="@p.Title thumbnail" loading="lazy" />
+                </a>
+                <div class="card-body">
+                    <span class="cat">@p.Category</span>
+                    <h3><a asp-action="Details" asp-route-id="@p.Id">@p.Title</a></h3>
+                    <p>@p.ShortDescription</p>
+                    <div class="tech-row">
+                        @foreach (var t in p.Technologies.Take(3))
+                        {
+                            <span class="tag">@t</span>
+                        }
+                    </div>
+                    <div class="card-actions">
+                        <a class="btn btn-accent btn-sm" asp-action="Details" asp-route-id="@p.Id">Details + Comments (@PortfolioStore.CommentCount(p.Id))</a>
+                        <a class="btn btn-ghost btn-sm" href="@p.GitHubUrl" target="_blank" rel="noopener">GitHub ↗</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+    @if (!Model.Any())
+    {
+        <p class="mt-3">No projects in this category.</p>
+    }
+</section>

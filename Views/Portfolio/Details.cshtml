@@ -1,0 +1,109 @@
+@model Pre_Finals_Quiz.Models.Project
+@using Pre_Finals_Quiz.Data
+@{
+    ViewData["Title"] = Model.Title;
+    var comments = ViewData["Comments"] as List<Pre_Finals_Quiz.Models.Comment> ?? new List<Pre_Finals_Quiz.Models.Comment>();
+    var isLoggedIn = (bool)(ViewData["IsLoggedIn"] ?? false);
+    var commentModel = new Pre_Finals_Quiz.Models.Comment { ProjectId = Model.Id, AuthorName = Context.Session.GetString("DisplayName") ?? "" };
+}
+
+<section class="container section detail">
+    <a asp-action="Index" class="back-link">← Back to projects / contents</a>
+    <div class="detail-grid">
+        <div>
+            <img src="@Model.ThumbnailUrl" alt="@Model.Title thumbnail" class="detail-thumb" />
+            <div class="detail-links">
+                <a class="btn btn-accent btn-sm" href="@Model.GitHubUrl" target="_blank" rel="noopener">View on GitHub ↗</a>
+                @if (!string.IsNullOrEmpty(Model.LiveDemoUrl))
+                {
+                    <a class="btn btn-ghost btn-sm" href="@Model.LiveDemoUrl" target="_blank" rel="noopener">Live Demo ↗</a>
+                }
+            </div>
+        </div>
+        <div>
+            <span class="cat">@Model.Category</span>
+            <h1>@Model.Title</h1>
+            <p class="lead">@Model.ShortDescription</p>
+            <p>@Model.LongDescription</p>
+            <h4>Tech stack</h4>
+            <div class="tech-row">
+                @foreach (var t in Model.Technologies)
+                {
+                    <span class="tag">@t</span>
+                }
+            </div>
+            <h4 class="mt-3">Key features</h4>
+            <ul class="feature-list">
+                @foreach (var f in Model.Features)
+                {
+                    <li>✓ @f</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="comments-section">
+        <h2>💬 Comments (@comments.Count)</h2>
+        @if (!isLoggedIn)
+        {
+            <div class="alert alert-warning">
+                You must <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Portfolio", new { id = Model.Id })">log in</a> to post a comment.
+                <br /><small>Demo login: <code>admin</code> / <code>Portfolio123!</code> (see README.md)</small>
+            </div>
+        }
+        else
+        {
+            <form asp-action="AddComment" asp-route-id="@Model.Id" method="post" class="comment-form">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" name="ProjectId" value="@Model.Id" />
+                <div class="mb-2">
+                    <label class="form-label" for="AuthorName">Your name</label>
+                    <input class="form-control" id="AuthorName" name="AuthorName" value="@commentModel.AuthorName" maxlength="50" required />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="Text">Comment</label>
+                    <textarea class="form-control" id="Text" name="Text" rows="3" maxlength="500" required placeholder="Share feedback about this project..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-accent btn-sm">Post comment</button>
+            </form>
+        }
+
+        <div class="comment-list">
+            @if (!comments.Any())
+            {
+                <p class="text-muted">No comments yet — be the first!</p>
+            }
+            @foreach (var c in comments)
+            {
+                <div class="comment">
+                    <div class="comment-head">
+                        <strong>@c.AuthorName</strong>
+                        <span title="@c.CreatedAt.ToLocalTime()">@c.CreatedAt.ToUniversalTime().ToString("MMM dd, yyyy HH:mm") UTC</span>
+                    </div>
+                    <p>@c.Text</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="toc-wrapper mt-4">
+        <h3>More projects (Table of Contents)</h3>
+        <ol class="toc-list">
+            @foreach (var p in PortfolioStore.Projects)
+            {
+                <li class="@(p.Id == Model.Id ? "active" : "")">
+                    <a asp-action="Details" asp-route-id="@p.Id">
+                        <span class="toc-num">@p.Id.ToString("00")</span>
+                        <span class="toc-title">@p.Title</span>
+                        <span class="toc-cat">@p.Category</span>
+                    </a>
+                </li>
+            }
+        </ol>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
